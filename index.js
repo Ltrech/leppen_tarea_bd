@@ -12,6 +12,11 @@ const usuariosRouter = require('./routers/usuarios.router');
 app.use('/usuarios', usuariosRouter);
 // Siempre que me refiera a usuarios le coloco el prefijo
 
+const pacientesRouter = require('./routers/pacientes.router');
+app.use('/pacientes', pacientesRouter);
+// Siempre que me refiera a usuarios le coloco el prefijo
+
+
 
 app.get("/", (req, res) => {
     res.send("Hola Psicologos");
