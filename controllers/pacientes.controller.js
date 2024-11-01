@@ -50,22 +50,22 @@ const storepacientes = (req, res) => {
     const {nombre_paciente,apellido_paciente, fecha_nac, telefono, domicilio, email} = req.body;
     console.log("email: " + email );
 
-    let usuario = usuarioControllers.buscarUsuario(email, res); 
+    let usuario =  usuarioControllers.buscarUsuarioPorEmail(email,res,  (usuario) =>{
+			
+		console.log("usuario: " + usuario);
 
-    console.log("usuario: " + usuario);
+		const usuario_id = usuario.id_usuarios;
 
-    const usuario_id = usuario.id_usuarios;
-
-    const sql = "INSERT INTO pacientes (nombre_paciente, apellido_paciente, fecha_nac, telefono, domicilio, imagen, usuario_id) VALUES (?,?,?,?,?,?)";
-    db.query(sql,[nombre_paciente,apellido_paciente, fecha_nac, telefono, domicilio, imageName, usuario_id], (error, result) => {
-        console.log(result);
-        if(error){
-            return res.status(500).json({error : "ERROR: Intente mas tarde por favor"});
-        }
-        const usuario = {...req.body, id: result.insertId}; // ... reconstruir el objeto del body
-        res.status(201).json(usuario); // muestra creado con exito el elemento
-    });     
-
+		const sql = "INSERT INTO pacientes (nombre_paciente, apellido_paciente, fecha_nac, telefono, domicilio, imagen, usuario_id) VALUES (?,?,?,?,?,?,?)";
+		
+		db.query(sql,[nombre_paciente,apellido_paciente, fecha_nac, telefono, domicilio, imageName, usuario_id], (error, result) => {
+			console.log(result);
+			if(error){
+				return res.status(500).json({error : "ERROR: Intente mas tarde por favor y"});
+			}
+			const usuario = {...req.body, id: result.insertId}; // ... reconstruir el objeto del body
+			res.status(201).json(usuario); // muestra creado con exito el elemento
+		});  });
 };
 
 //// METODO PUT  ////

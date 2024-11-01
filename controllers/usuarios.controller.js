@@ -3,8 +3,7 @@
 
 
 const db = require("../db/db");
-
-const buscarUsuario = (email,res)=>{
+const buscarUsuario = (email, res)=>{
     const sql = "SELECT * FROM usuarios where fecha_baja is null and email= ?";
     db.query(sql,[email], (error, rows) => {
         if(error){
@@ -13,13 +12,28 @@ const buscarUsuario = (email,res)=>{
         if(rows.length == 0){
             return res.status(404).send({error : "ERROR: No existe el email"});
         };
-        
         res.json(rows[0]); 
-        
         // me muestra el elemento en la posicion cero si existe.
     });  
 }
 
+const buscarUsuarioPorEmail = function (email, res, cb) {
+    const sql = "SELECT * FROM usuarios where fecha_baja is null and email= ?";
+    let usuario = null;
+
+    db.query(sql,[email], (error, rows) => {
+        if(error){
+            return res.status(500).json({error : "ERROR: Intente mas tarde por favor"});
+        }
+        if(rows.length == 0){
+            return res.status(404).send({error : "ERROR: No existe el email"});
+        };
+		
+
+        console.log("Row: "+ rows[0]);
+       cb(rows[0]);
+    }); 
+  };
 //// METODO GET  /////
 
 // Para todos los usuarios
@@ -116,5 +130,6 @@ module.exports = {
     storeUsuarios,
     updateusuario,
     destroyUsuario,
-    buscarUsuario
+    buscarUsuario,
+    buscarUsuarioPorEmail
 };
