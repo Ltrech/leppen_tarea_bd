@@ -2,6 +2,10 @@
 
 
 
+
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+
 const db = require("../db/db");
 const buscarUsuario = (email, res)=>{
     const sql = "SELECT * FROM usuarios where fecha_baja is null and email= ?";
@@ -68,18 +72,29 @@ const showusuarios = (req, res) => {
 
 //// insetar un nuevo usuario  ////
 const storeUsuarios = (req, res) => {
-    const {email,contraseña, rol} = req.body;
-    const sql = "INSERT INTO usuarios (email, contraseña, rol) VALUES (?,?,?)";
-    db.query(sql,[email,contraseña, rol], (error, result) => {
-        console.log(result);
-        if(error){
-            return res.status(500).json({error : "ERROR: Intente mas tarde por favor"});
-        }
-        const usuario = {...req.body, id: result.insertId}; // ... reconstruir el objeto del body
-        res.status(201).json(usuario); // muestra creado con exito el elemento
-    });     
+    const { email, contraseña, rol, fecha_baja } = req.body;
+    if (!email || !contraseña || !rol || fecha_baja === undefined) {
+        return res.status(400).send("Todos los campos son obligatorios");
+    }
 
+    bcrypt.hash(contraseña, 8, (err, hashedPassword) => {
+        if (err) {
+            return res.status(500).send("Error de encriptación");
+        }
+
+        const sql = "INSERT INTO usuarios (email, contraseña, rol, fecha_baja) VALUES (?,?,?,?)";
+        db.query(sql, [email, hashedPassword, rol, fecha_baja], (error, result) => {
+            if (error) {
+                return res.status(500).json({ error: "ERROR: Intente más tarde por favor" });
+            }
+
+            const usuario = { ...req.body, id: result.insertId };
+            res.status(201).json(usuario); // muestra creado con éxito el elemento
+        });
+    });
 };
+
+
 
 //// METODO PUT  ////
 
@@ -130,6 +145,5 @@ module.exports = {
     storeUsuarios,
     updateusuario,
     destroyUsuario,
-    buscarUsuario,
     buscarUsuarioPorEmail
 };

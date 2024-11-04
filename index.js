@@ -1,6 +1,7 @@
 // CONFIGURAR LO QUE SERIA UN SERVIDOR CON LAS MINIMAS PRESTACIONES PARA CORRER EXPRESS
 // Que este escuchando y tengamos una ruta principal "/" en el proyecto
 
+
 const express = require("express");
 const app = express();
 
@@ -15,7 +16,6 @@ app.use('/usuarios', usuariosRouter);
 const pacientesRouter = require('./routers/pacientes.router');
 app.use('/pacientes', pacientesRouter);
 // Siempre que me refiera a usuarios le coloco el prefijo
-
 
 
 app.get("/", (req, res) => {
