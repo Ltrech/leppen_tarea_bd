@@ -72,14 +72,23 @@ const storepacientes = (req, res) => {
 
 //// Modificar Datos  ////
 const updatepacientes = (req, res) => {
+
+    let imageName= "";
+    if(req.file){
+        imageName = req.file.filename;
+
+    };
     const {id_pacientes} = req.params;
-    const {nombre_paciente,apellido_paciente, fecha_nac, telefono, domicilio} = req.body;
-    const sql ="UPDATE pacientes SET nombre_paciente = ?, apellido_paciente = ?, fecha_nac = ?, telefono = ?, domicilio = ? WHERE id_pacientes = ?";
-    db.query(sql,[nombre_paciente,apellido_paciente, fecha_nac, telefono, domicilio, id_pacientes], (error, result) => {
+    const {nombre_paciente,apellido_paciente, fecha_nac, telefono, domicilio, usuario_id} = req.body;
+    const sql ="UPDATE pacientes SET nombre_paciente = ?, apellido_paciente = ?, fecha_nac = ?, telefono = ?, domicilio = ?, imagen = ?, usuario_id = ? WHERE id_pacientes = ?";
+    db.query(sql,[nombre_paciente,apellido_paciente, fecha_nac, telefono, domicilio, imageName, usuario_id, id_pacientes], (error, result) => {
         console.log(result);
+        console.log(error);
+
         if(error){
             return res.status(500).json({error : "ERROR: Intente mas tarde por favor"});
         }
+
         if(result.affectedRows == 0){
             return res.status(404).send({error : "ERROR: El Paciente a modificar no existe"});
         };

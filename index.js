@@ -11,11 +11,29 @@ app.use(express.json());
 
 const usuariosRouter = require('./routers/usuarios.router');
 app.use('/usuarios', usuariosRouter);
-// Siempre que me refiera a usuarios le coloco el prefijo
+// Tabla Usuarios
 
 const pacientesRouter = require('./routers/pacientes.router');
 app.use('/pacientes', pacientesRouter);
-// Siempre que me refiera a usuarios le coloco el prefijo
+// tabla Pacientes
+
+const rolRouter= require('./routers/rol.router');
+app.use('/rol', rolRouter);
+// Tabla Rol
+
+
+const rol_por_usuarioRouter= require('./routers/rol_por_usuario.router');
+app.use('/rol_por_usuario', rol_por_usuarioRouter);
+// Tabla Rol_por_usuario
+
+const hcRouter= require('./routers/historia_clinica.router');
+app.use('/historia_clinica', hcRouter);
+// Tabla Historia clinica//
+
+const tipo_sesionRouter= require('./routers/tipo_sesion.router');
+app.use('/tipo_sesion', tipo_sesionRouter);
+// Tabla Historia clinica//
+
 
 
 app.get("/", (req, res) => {

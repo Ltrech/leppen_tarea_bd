@@ -94,29 +94,65 @@ const storeUsuarios = (req, res) => {
     });
 };
 
+const buscarUsuarioPorid = function (id_usuarios, res, cb) {
+    const sql_id = "SELECT * FROM usuarios where fecha_baja is null and id_usuarios= ?";
+    let usuario = null;
+
+    db.query(sql_id,[id_usuarios], (error, rows) => {
+        if(error){
+            return res.status(500).json({error : "ERROR: Intente mas tarde por favor"});
+        }
+        if(rows.length == 0){
+            return res.status(404).send({error : "ERROR: No existe el usuario"});
+        };
+		
+
+        console.log("Row: "+ rows[0]);
+       cb(rows[0]);
+    }); 
+  };
 
 
 //// METODO PUT  ////
 
 //// Modificar Datos  ////
 const updateusuario = (req, res) => {
-    const {id_usuarios} = req.params;
-    const {email, contraseña, rol} = req.body;
-    const sql ="UPDATE usuarios SET email = ?, contraseña = ?, rol = ? WHERE id_usuarios = ?";
-    db.query(sql,[email, contraseña, rol, id_usuarios], (error, result) => {
-        console.log(result);
-        if(error){
-            return res.status(500).json({error : "ERROR: Intente mas tarde por favor"});
-        }
-        if(result.affectedRows == 0){
-            return res.status(404).send({error : "ERROR: El usuario a modificar no existe"});
-        };
-        
-        const usuarios = {...req.body, ...req.params}; // ... reconstruir el objeto del body
+    const { id_usuarios } = req.params;  
+    const { email, contraseña, fecha_baja } = req.body;
 
-        res.json(usuarios); // mostrar el elmento que existe
-    });     
+    // Validar si el parámetro id_usuarios es válido
+    if (!id_usuarios) {
+        return res.status(400).json({ error: "El id del usuario es obligatorio" });
+    }
+
+    // Encriptar la contraseña antes de actualizar
+    bcrypt.hash(contraseña, 8, (err, hashedPassword) => {
+        if (err) {
+            return res.status(500).send("Error de encriptación");
+        }
+
+        // Consulta para actualizar el usuario
+        const sql = "UPDATE usuarios SET email = ?, contraseña = ?, fecha_baja = ? WHERE id_usuarios = ?";
+        const params = [email, hashedPassword, fecha_baja, id_usuarios];
+
+        db.query(sql, params, (error, result) => {
+            if (error) {
+                console.log("Error en la consulta:", error);  // Mostrar error detallado en consola
+                return res.status(500).json({ error: "ERROR: Intente más tarde por favor" });
+            }
+
+            if (result.affectedRows === 0) {
+                return res.status(404).send({ error: "ERROR: El usuario a modificar no existe" });
+            }
+
+            // Respuesta con los datos actualizados
+            res.json({ id_usuarios, email, fecha_baja });
+        });
+    });
 };
+
+
+
 
 
 //// METODO DELETE ////
@@ -138,6 +174,8 @@ const destroyUsuario = (req, res) => {
 };
 
 
+
+
 // EXPORTAR DEL MODULO TODAS LAS FUNCIONES
 module.exports = {
     alluser,
@@ -145,5 +183,5 @@ module.exports = {
     storeUsuarios,
     updateusuario,
     destroyUsuario,
-    buscarUsuarioPorEmail
+    buscarUsuarioPorid
 };

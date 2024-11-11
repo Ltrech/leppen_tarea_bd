@@ -37,7 +37,7 @@ router.get('/:id_pacientes', controller.showpacientes);
 router.post('/', upload.single('imagen'), controller.storepacientes);
 
 //// METODO PUT  ////
-router.put('/:id_pacientes', controller.updatepacientes);
+router.put('/:id_pacientes',upload.single('imagen'), controller.updatepacientes);
 
 //// METODO DELETE ////
 router.delete('/:id_pacientes', controller.destroypacientes);
