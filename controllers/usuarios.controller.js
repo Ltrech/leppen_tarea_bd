@@ -72,8 +72,8 @@ const showusuarios = (req, res) => {
 
 //// insetar un nuevo usuario  ////
 const storeUsuarios = (req, res) => {
-    const { email, contraseña, rol, fecha_baja } = req.body;
-    if (!email || !contraseña || !rol || fecha_baja === undefined) {
+    const { email, contraseña, fecha_baja } = req.body;
+    if (!email || !contraseña || fecha_baja === undefined) {
         return res.status(400).send("Todos los campos son obligatorios");
     }
 
@@ -82,8 +82,8 @@ const storeUsuarios = (req, res) => {
             return res.status(500).send("Error de encriptación");
         }
 
-        const sql = "INSERT INTO usuarios (email, contraseña, rol, fecha_baja) VALUES (?,?,?,?)";
-        db.query(sql, [email, hashedPassword, rol, fecha_baja], (error, result) => {
+        const sql = "INSERT INTO usuarios (email, contraseña, fecha_baja) VALUES (?,?,?)";
+        db.query(sql, [email, hashedPassword, fecha_baja], (error, result) => {
             if (error) {
                 return res.status(500).json({ error: "ERROR: Intente más tarde por favor" });
             }
