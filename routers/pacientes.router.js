@@ -1,46 +1,41 @@
-/// RUTAS DEL MODULO ///
-const express = require("express");
+const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const bcrypt = require('bcryptjs');
+const path = require('path');
+const app = express();
+// Configuración de multer para la carga de imágenes
 
 
-///ACA VA EL MULTER para las imagenes////
 
-const multer = require("multer");
-const path = require("path");
-
-
-//diskstorage para guardar en el disco  y memorystorage para guardar en la nube//
+// Configuración de almacenamiento de archivos
 const storage = multer.diskStorage({
-    destination:(req, file, cb) => {
-        cb(null, 'uploads');
-    },
-    filename:(req, file, cb) =>{
-        console.log(file);
-        cb(null, Date.now() + path.extname(file.originalname));
-    },
-
+  destination: (req, file, cb) => {
+    cb(null, 'uploads'); // La carpeta donde se guardarán las imágenes
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname)); // Nombre único para cada archivo
+  }
 });
 
-const upload = multer({storage});
+const upload = multer({ storage: storage });
 
+
+// Controlador
 const controller = require("../controllers/pacientes.controller");
 
-//// METODO GET  /////
+// Rutas para manejar pacientes
+router.get('/', controller.allpacientes);  // Mostrar todos los pacientes
 
-// Para todos los productos
-router.get('/', controller.allpacientes);
+router.get('/id_pacientes', controller.showpacientes);  // Mostrar un paciente por ID
 
-// Para un producto
-router.get('/:id_pacientes', controller.showpacientes);
-
-//// METODO POST  ////
+// Ruta POST para registrar un nuevo paciente
 router.post('/', upload.single('imagen'), controller.storepacientes);
 
-//// METODO PUT  ////
-router.put('/:id_pacientes',upload.single('imagen'), controller.updatepacientes);
+// Ruta PUT para actualizar un paciente
+router.put('/:id_pacientes', upload.single('imagen'), controller.updatepacientes);
 
-//// METODO DELETE ////
+// Ruta DELETE para eliminar un paciente
 router.delete('/:id_pacientes', controller.destroypacientes);
 
-// EXPORTAR ROUTERS
 module.exports = router;

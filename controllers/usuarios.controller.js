@@ -72,27 +72,32 @@ const showusuarios = (req, res) => {
 
 //// insetar un nuevo usuario  ////
 const storeUsuarios = (req, res) => {
-    const { email, contraseña, rol, fecha_baja } = req.body;
-    if (!email || !contraseña || !rol || fecha_baja === undefined) {
+    const { email, contrasena, fecha_baja } = req.body;
+    if (!email || !contrasena || fecha_baja === undefined) {
         return res.status(400).send("Todos los campos son obligatorios");
     }
 
-    bcrypt.hash(contraseña, 8, (err, hashedPassword) => {
+    console.log("Datos recibidos:", req.body);
+
+    bcrypt.hash(contrasena, 8, (err, hashedPassword) => {
         if (err) {
+            console.error("Error de encriptación:", err);
             return res.status(500).send("Error de encriptación");
         }
 
-        const sql = "INSERT INTO usuarios (email, contraseña, rol, fecha_baja) VALUES (?,?,?,?)";
-        db.query(sql, [email, hashedPassword, rol, fecha_baja], (error, result) => {
+        const sql = "INSERT INTO usuarios (email, contrasena, fecha_baja) VALUES (?,?,?)";
+        db.query(sql, [email, hashedPassword, fecha_baja], (error, result) => {
             if (error) {
+                console.error("Error en la consulta SQL:", error);
                 return res.status(500).json({ error: "ERROR: Intente más tarde por favor" });
             }
 
             const usuario = { ...req.body, id: result.insertId };
-            res.status(201).json(usuario); // muestra creado con éxito el elemento
+            res.status(201).json(usuario);
         });
     });
 };
+
 
 const buscarUsuarioPorid = function (id_usuarios, res, cb) {
     const sql_id = "SELECT * FROM usuarios where fecha_baja is null and id_usuarios= ?";
@@ -118,7 +123,7 @@ const buscarUsuarioPorid = function (id_usuarios, res, cb) {
 //// Modificar Datos  ////
 const updateusuario = (req, res) => {
     const { id_usuarios } = req.params;  
-    const { email, contraseña, fecha_baja } = req.body;
+    const { email, contrasena, fecha_baja } = req.body;
 
     // Validar si el parámetro id_usuarios es válido
     if (!id_usuarios) {
@@ -126,13 +131,13 @@ const updateusuario = (req, res) => {
     }
 
     // Encriptar la contraseña antes de actualizar
-    bcrypt.hash(contraseña, 8, (err, hashedPassword) => {
+    bcrypt.hash(contrasena, 8, (err, hashedPassword) => {
         if (err) {
             return res.status(500).send("Error de encriptación");
         }
 
         // Consulta para actualizar el usuario
-        const sql = "UPDATE usuarios SET email = ?, contraseña = ?, fecha_baja = ? WHERE id_usuarios = ?";
+        const sql = "UPDATE usuarios SET email = ?, contrasena = ?, fecha_baja = ? WHERE id_usuarios = ?";
         const params = [email, hashedPassword, fecha_baja, id_usuarios];
 
         db.query(sql, params, (error, result) => {
@@ -183,5 +188,6 @@ module.exports = {
     storeUsuarios,
     updateusuario,
     destroyUsuario,
-    buscarUsuarioPorid
+    buscarUsuarioPorid,
+    buscarUsuarioPorEmail
 };

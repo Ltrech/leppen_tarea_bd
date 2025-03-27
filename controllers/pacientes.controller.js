@@ -1,10 +1,12 @@
 /// CONTROLADORES DEL MODULO ///
+const bcrypt = require('bcryptjs');
 
 
 
 const db = require("../db/db");
 
 const usuarioControllers = require("./usuarios.controller");
+
 
 //// METODO GET  /////
 
@@ -42,56 +44,68 @@ const showpacientes = (req, res) => {
 const storepacientes = (req, res) => {
 
     console.log(req.file);
-    let imageName= "";
+    let imageName="";
     if(req.file){
-        imageName = req.file.filename;
-
+        imageName= req.file.filename;
     };
-    const {nombre_paciente,apellido_paciente, fecha_nac, telefono, domicilio, email} = req.body;
-    console.log("email: " + email );
+    // Verificar los datos recibidos
+    console.log("Datos recibidos en req.body:", req.body);
+    console.log("Archivo recibido:", req.file);
+  
+    // Desestructurar los datos del formulario
+    const { nombre_paciente, apellido_paciente, fecha_nac, telefono, domicilio, email, contrasena } = req.body;
+    
+    if (!nombre_paciente || !apellido_paciente || !fecha_nac || !telefono || !domicilio || !email || !contrasena) {
+      return res.status(400).send("Todos los campos son obligatorios");
+    }
+  
+    // Hashear la contraseña
 
-    let usuario =  usuarioControllers.buscarUsuarioPorEmail(email,res,  (usuario) =>{
-			
-		console.log("usuario: " + usuario);
+    
+    bcrypt.hash(contrasena, 8, (err, hashedPassword) => {
+      if (err) {
+        return res.status(500).send("Error de encriptación");
+      }
+  
+      // Insertar en la base de datos (usuarios)
+      const sqlUsuario = "INSERT INTO usuarios (email, contrasena) VALUES (?, ?)";
+      db.query(sqlUsuario, [email, hashedPassword], (error, resultUsuario) => {
+        if (error) {
+          return res.status(500).json({ error: "ERROR: No se pudo insertar en usuarios" });
+        }
+  
+        // Usar el id del nuevo usuario para registrar en la tabla pacientes
+        const usuario_id = resultUsuario.insertId;
+        const sqlPaciente = "INSERT INTO pacientes (nombre_paciente, apellido_paciente, fecha_nac, telefono, domicilio, imagen, usuario_id) VALUES (?,?,?,?,?,?,?)";
+        db.query(sqlPaciente, [nombre_paciente, apellido_paciente, fecha_nac, telefono, domicilio, imageName, usuario_id], (error, result) => {
+          if (error) {
+            return res.status(500).json({ error: "ERROR: No se pudo insertar en pacientes" });
+          }
+  
+          res.status(201).json({ mensaje: "Registro exitoso" });
+        });
+      });
+    });
+  };
+  
 
-		const usuario_id = usuario.id_usuarios;
-
-		const sql = "INSERT INTO pacientes (nombre_paciente, apellido_paciente, fecha_nac, telefono, domicilio, imagen, usuario_id) VALUES (?,?,?,?,?,?,?)";
-		
-		db.query(sql,[nombre_paciente,apellido_paciente, fecha_nac, telefono, domicilio, imageName, usuario_id], (error, result) => {
-			console.log(result);
-			if(error){
-				return res.status(500).json({error : "ERROR: Intente mas tarde por favor y"});
-			}
-			const usuario = {...req.body, id: result.insertId}; // ... reconstruir el objeto del body
-			res.status(201).json(usuario); // muestra creado con exito el elemento
-		});  });
-};
 
 //// METODO PUT  ////
 
 //// Modificar Datos  ////
 const updatepacientes = (req, res) => {
-
-    let imageName= "";
-    if(req.file){
-        imageName = req.file.filename;
-
-    };
     const {id_pacientes} = req.params;
-    const {nombre_paciente,apellido_paciente, fecha_nac, telefono, domicilio, usuario_id} = req.body;
-    const sql ="UPDATE pacientes SET nombre_paciente = ?, apellido_paciente = ?, fecha_nac = ?, telefono = ?, domicilio = ?, imagen = ?, usuario_id = ? WHERE id_pacientes = ?";
-    db.query(sql,[nombre_paciente,apellido_paciente, fecha_nac, telefono, domicilio, imageName, usuario_id, id_pacientes], (error, result) => {
+    const {nombre_paciente,apellido_paciente, fecha_nac, telefono, domicilio} = req.body;
+    const sql ="UPDATE pacientes SET nombre_paciente = ?, apellido_paciente = ?, fecha_nac = ?, telefono = ?, domicilio = ?, imagen = ? WHERE id_pacientes = ?";
+    db.query(sql,[nombre_paciente,apellido_paciente, fecha_nac, telefono, domicilio,imageName, id_pacientes], (error, result) => {
         console.log(result);
-        console.log(error);
-
         if(error){
             return res.status(500).json({error : "ERROR: Intente mas tarde por favor"});
         }
-
         if(result.affectedRows == 0){
             return res.status(404).send({error : "ERROR: El Paciente a modificar no existe"});
         };
+        
         
         const pacientes = {...req.body, ...req.params}; // ... reconstruir el objeto del body
 
